@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import BlogForm from './components/BlogForm'
+import CommentForm from './components/CommentForm'
 // import LoginForm from './components/LoginForm'
 import Togglable from './components/Togglable'
 import blogService from './services/blogs'
@@ -35,9 +36,22 @@ const ErrorNotification = ({ message }) => {
   )
 }
 
+const LoggedDetails = ( { user, loginForm, handleLogout }) => {
+  return(
+    <span>
+      {!user && loginForm()}
+      {user &&
+        <span>
+          <span>{user.name} logged in </span>
+          <button onClick={handleLogout}>logout</button>
+        </span>
+      }
+    </span>
+  )
+}
+
 
 const Users = ({ users, user, loginForm, handleLogout }) => {
-
   if (!users) {
     return null
   }
@@ -45,13 +59,14 @@ const Users = ({ users, user, loginForm, handleLogout }) => {
   return(
     <div>
       <h2>blogs</h2>
-      {!user && loginForm()}
+      {/* <LoggedDetails user={user} loginForm={loginForm} handleLogout={handleLogout} /> */}
+      {/*{!user && loginForm()}
       {user &&
         <div>
           <p>{user.name} logged in</p>
           <button onClick={handleLogout}>logout</button>
         </div>
-      }
+      } */}
 
       <h2>users</h2>
       <table>
@@ -88,13 +103,14 @@ const UserView = ({ users, user, loginForm, handleLogout }) => {
   return(
     <div>
       <h2>blogs</h2>
-      {!user && loginForm()}
+      {/* <LoggedDetails user={user} loginForm={loginForm} handleLogout={handleLogout} /> */}
+      {/*{!user && loginForm()}
       {user &&
         <div>
           <p>{user.name} logged in</p>
           <button onClick={handleLogout}>logout</button>
         </div>
-      }
+      } */}
 
       <h2>{selected.name}</h2>
       <h3>added blogs</h3>
@@ -109,7 +125,7 @@ const UserView = ({ users, user, loginForm, handleLogout }) => {
   )
 }
 
-const BlogView = ({ user, loginForm, handleLogout, blogs, likeBlog }) => {
+const BlogView = ({ user, loginForm, handleLogout, blogs, likeBlog, setBlogs, commentForm }) => {
   const id = useParams().id
   console.log(id)
   console.log(blogs)
@@ -117,6 +133,8 @@ const BlogView = ({ user, loginForm, handleLogout, blogs, likeBlog }) => {
     return null
   }
   const selectedBlog = blogs.find(bl => bl.id === id)
+  console.log(selectedBlog)
+  //console.log(selectedBlog.comments)
 
   if (!selectedBlog) {
     return null
@@ -129,25 +147,45 @@ const BlogView = ({ user, loginForm, handleLogout, blogs, likeBlog }) => {
       author: selectedBlog.author,
       url: selectedBlog.url,
       likes: selectedBlog.likes + 1,
-      user: selectedBlog.user
+      user: selectedBlog.user,
+      comments: selectedBlog.comments
     })
   }
 
+
+
+  if (!selectedBlog.comments) {
+    selectedBlog.comments = []
+  }
+
+
   return(
     <div>
-      <h2>blogs</h2>
-      {!user && loginForm()}
+      <h2>blog app</h2>
+      {/* <LoggedDetails user={user} loginForm={loginForm} handleLogout={handleLogout} /> */}
+      {/*{!user && loginForm()}
       {user &&
         <div>
           <p>{user.name} logged in</p>
           <button onClick={handleLogout}>logout</button>
         </div>
-      }
+      } */}
 
       <h2>{selectedBlog.title} {selectedBlog.author}</h2>
       <div><a href={selectedBlog.url}>{selectedBlog.url}</a></div>
       <div>likes {selectedBlog.likes}<button className="likeButton" value={selectedBlog.id} onClick={handleLikeClick}>like</button></div>
       <div>added by {user.name}</div>
+      <h3>comments</h3>
+      {commentForm(selectedBlog)}
+      {/* <button className="noCommentButton" value={selectedBlog.id} onClick={handleNoCommentClick}>haven't read this yet..</button> */}
+      {/* <button className="commentButton" value={selectedBlog.id} onClick={handleCommentClick}>add comment</button> */}
+      <ul>
+        {selectedBlog.comments.map((comment, pos) =>
+          <li key={pos}>
+            {comment}
+          </li>
+        )}
+      </ul>
     </div>
   )
 }
@@ -165,25 +203,27 @@ const Blogs = ({ users, user, loginForm, handleLogout, updateBlog, deleteBlog, s
   return(
     <div>
 
-      <h2>blogs</h2>
+      <h2>blog app</h2>
       <SuccessNotification message={successMessage}/>
       <ErrorNotification message={errorMessage}/>
 
-      {!user && loginForm()}
+      {/* <LoggedDetails user={user} loginForm={loginForm} handleLogout={handleLogout} /> */}
+      {/*{!user && loginForm()}
       {user &&
-        <div>
+               <div>
           <p>{user.name} logged in
             <button onClick={handleLogout}>logout</button>
           </p>
-          {blogForm()}
-          {blogs.map(blog =>
-            // <Blog key={blog.id} blog={blog} user={user} likeBlog={updateBlog} removeBlog={deleteBlog} />
-            <div className='blog' key={blog.id} style={blogStyle}>
-              <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
-            </div>
-          )}
-        </div>
-      }
+        </div> */}
+      <div>
+        {blogForm()}
+        {blogs.map(blog =>
+        // <Blog key={blog.id} blog={blog} user={user} likeBlog={updateBlog} removeBlog={deleteBlog} />
+          <div className='blog' key={blog.id} style={blogStyle}>
+            <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -199,7 +239,6 @@ const App = () => {
   const [users, setUsers] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
-  const [selectedUser, setSelectedUser] = useState(null)
 
   useEffect(() => {
     async function fetchData() {
@@ -340,6 +379,36 @@ const App = () => {
     </Togglable>
   )
 
+  const commentFormRef = useRef()
+
+  const commentForm = (selectedBlog) => (
+    <Togglable buttonLabel='add comment' ref={commentFormRef} >
+      <CommentForm createComment={addComment} selectedBlog={selectedBlog} />
+    </Togglable>
+  )
+
+  const addComment = async (id, newObj) => {
+    console.log('adding a comment....')
+    commentFormRef.current.toggleVisibility()
+    console.log(id)
+    console.log(newObj)
+    try {
+      const returnedBlog = await blogService.createComment(id, newObj)
+      /*const blogToBeUpdated = blogs.find(blog => blog.id.toString() === id)
+      const blogAdder = blogToBeUpdated.user
+      returnedBlog.user = blogAdder */
+      console.log('tällainen blogi tuli takaisin')
+      console.log(returnedBlog)
+      const updatedBlogList = blogs.map(blog => blog.id !== id ? blog : returnedBlog)
+      updatedBlogList.sort((a, b) => b.likes - a.likes)
+      setBlogs(updatedBlogList)
+    } catch (exception) {
+      console.log('ei vitsi, pieleen meni')
+      console.log(exception)
+    }
+  }
+
+
   const loginForm = () => {
 
     return(
@@ -372,18 +441,22 @@ const App = () => {
     )
   }
 
+  const linkStyle = {
+    padding: 5
+  }
 
 
   return (
     <Router>
-      {/*<div>
-        <Link to="/">blogs</Link>
-        <Link to="/users">users</Link>
-      </div> */}
+      <div className="navbar">
+        <Link style={linkStyle} to="/">blogs</Link>
+        <Link style={linkStyle} to="/users">users</Link>
+        <LoggedDetails user={user} loginForm={loginForm} handleLogout={handleLogout} />
+      </div>
       <Routes>
         <Route path="/users/:id" element={<UserView users={users} user={user} loginForm={loginForm} handleLogout={handleLogout} />} />
         <Route path="/blogs/:id" element={<BlogView user={user} loginForm={loginForm} handleLogout={handleLogout}
-          likeBlog={updateBlog} blogs={blogs} />} />
+          likeBlog={updateBlog} blogs={blogs} setBlogs={setBlogs} commentForm={commentForm} />} />
         <Route path="/users" element={<Users users={users} user={user} loginForm={loginForm} handleLogout={handleLogout} />} />
         <Route path="/" element={<Blogs users={users} user={user} loginForm={loginForm} handleLogout={handleLogout}
           updateBlog={updateBlog} deleteBlog={deleteBlog} successMessage={successMessage} errorMessage={errorMessage}
