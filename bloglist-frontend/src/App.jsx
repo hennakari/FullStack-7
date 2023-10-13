@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import BlogForm from './components/BlogForm'
 import CommentForm from './components/CommentForm'
-// import LoginForm from './components/LoginForm'
 import Togglable from './components/Togglable'
 import blogService from './services/blogs'
 import loginService from './services/login'
@@ -10,6 +9,7 @@ import {
   BrowserRouter as Router,
   Routes, Route, Link, useParams
 } from 'react-router-dom'
+import { Page, Navigation, Input, Button, ListItem, StyledLink, StyledLinkNav, Header, Span, MarginDiv, SuccessDiv, ErrorDiv } from './styles'
 
 const SuccessNotification = ({ message }) => {
   if (message === null) {
@@ -17,9 +17,9 @@ const SuccessNotification = ({ message }) => {
   }
 
   return (
-    <div className="success">
+    <SuccessDiv>
       {message}
-    </div>
+    </SuccessDiv>
   )
 }
 
@@ -30,11 +30,12 @@ const ErrorNotification = ({ message }) => {
   }
 
   return (
-    <div className="error">
+    <ErrorDiv>
       {message}
-    </div>
+    </ErrorDiv>
   )
 }
+
 
 const LoggedDetails = ( { user, loginForm, handleLogout }) => {
   return(
@@ -42,8 +43,8 @@ const LoggedDetails = ( { user, loginForm, handleLogout }) => {
       {!user && loginForm()}
       {user &&
         <span>
-          <span>{user.name} logged in </span>
-          <button onClick={handleLogout}>logout</button>
+          <Span>{user.name} logged in </Span>
+          <Button onClick={handleLogout}>logout</Button>
         </span>
       }
     </span>
@@ -58,17 +59,9 @@ const Users = ({ users, user, loginForm, handleLogout }) => {
 
   return(
     <div>
-      <h2>blogs</h2>
-      {/* <LoggedDetails user={user} loginForm={loginForm} handleLogout={handleLogout} /> */}
-      {/*{!user && loginForm()}
-      {user &&
-        <div>
-          <p>{user.name} logged in</p>
-          <button onClick={handleLogout}>logout</button>
-        </div>
-      } */}
+      <Header>Blog app</Header>
 
-      <h2>users</h2>
+      <h2>Users</h2>
       <table>
         <thead>
           <tr>
@@ -90,7 +83,7 @@ const Users = ({ users, user, loginForm, handleLogout }) => {
 }
 
 
-const UserView = ({ users, user, loginForm, handleLogout }) => {
+const UserView = ({ users }) => {
   const id = useParams().id
   console.log(id)
   const selected = users.find(us => us.id === id)
@@ -102,18 +95,10 @@ const UserView = ({ users, user, loginForm, handleLogout }) => {
 
   return(
     <div>
-      <h2>blogs</h2>
-      {/* <LoggedDetails user={user} loginForm={loginForm} handleLogout={handleLogout} /> */}
-      {/*{!user && loginForm()}
-      {user &&
-        <div>
-          <p>{user.name} logged in</p>
-          <button onClick={handleLogout}>logout</button>
-        </div>
-      } */}
+      <Header>Blog app</Header>
 
       <h2>{selected.name}</h2>
-      <h3>added blogs</h3>
+      <h3>Added blogs</h3>
       <ul>
         {blogs.map(blog =>
           <li key={blog.id}>
@@ -125,16 +110,12 @@ const UserView = ({ users, user, loginForm, handleLogout }) => {
   )
 }
 
-const BlogView = ({ user, loginForm, handleLogout, blogs, likeBlog, setBlogs, commentForm }) => {
+const BlogView = ({ user, blogs, likeBlog, commentForm }) => {
   const id = useParams().id
-  console.log(id)
-  console.log(blogs)
   if (!blogs) {
     return null
   }
   const selectedBlog = blogs.find(bl => bl.id === id)
-  console.log(selectedBlog)
-  //console.log(selectedBlog.comments)
 
   if (!selectedBlog) {
     return null
@@ -161,24 +142,14 @@ const BlogView = ({ user, loginForm, handleLogout, blogs, likeBlog, setBlogs, co
 
   return(
     <div>
-      <h2>blog app</h2>
-      {/* <LoggedDetails user={user} loginForm={loginForm} handleLogout={handleLogout} /> */}
-      {/*{!user && loginForm()}
-      {user &&
-        <div>
-          <p>{user.name} logged in</p>
-          <button onClick={handleLogout}>logout</button>
-        </div>
-      } */}
+      <Header>Blog app</Header>
 
-      <h2>{selectedBlog.title} {selectedBlog.author}</h2>
-      <div><a href={selectedBlog.url}>{selectedBlog.url}</a></div>
-      <div>likes {selectedBlog.likes}<button className="likeButton" value={selectedBlog.id} onClick={handleLikeClick}>like</button></div>
-      <div>added by {user.name}</div>
-      <h3>comments</h3>
+      <h2>{selectedBlog.title} by {selectedBlog.author}</h2>
+      <MarginDiv><a href={selectedBlog.url}>{selectedBlog.url}</a></MarginDiv>
+      <MarginDiv>likes {selectedBlog.likes}<Button className="likeButton" value={selectedBlog.id} onClick={handleLikeClick}>like</Button></MarginDiv>
+      <MarginDiv>added by {user.name}</MarginDiv>
+      <h3>Comments</h3>
       {commentForm(selectedBlog)}
-      {/* <button className="noCommentButton" value={selectedBlog.id} onClick={handleNoCommentClick}>haven't read this yet..</button> */}
-      {/* <button className="commentButton" value={selectedBlog.id} onClick={handleCommentClick}>add comment</button> */}
       <ul>
         {selectedBlog.comments.map((comment, pos) =>
           <li key={pos}>
@@ -190,39 +161,24 @@ const BlogView = ({ user, loginForm, handleLogout, blogs, likeBlog, setBlogs, co
   )
 }
 
-const Blogs = ({ users, user, loginForm, handleLogout, updateBlog, deleteBlog, successMessage, errorMessage, blogForm, blogs }) => {
-
-  const blogStyle = {
-    paddingTop: 10,
-    paddingLeft: 2,
-    border: 'solid',
-    borderWidth: 1,
-    marginBottom: 5
-  }
+const Blogs = ({ successMessage, errorMessage, blogForm, blogs }) => {
 
   return(
     <div>
 
-      <h2>blog app</h2>
+      <Header>Blog app</Header>
       <SuccessNotification message={successMessage}/>
       <ErrorNotification message={errorMessage}/>
 
-      {/* <LoggedDetails user={user} loginForm={loginForm} handleLogout={handleLogout} /> */}
-      {/*{!user && loginForm()}
-      {user &&
-               <div>
-          <p>{user.name} logged in
-            <button onClick={handleLogout}>logout</button>
-          </p>
-        </div> */}
       <div>
         {blogForm()}
-        {blogs.map(blog =>
-        // <Blog key={blog.id} blog={blog} user={user} likeBlog={updateBlog} removeBlog={deleteBlog} />
-          <div className='blog' key={blog.id} style={blogStyle}>
-            <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
-          </div>
-        )}
+        <MarginDiv>
+          {blogs.map(blog =>
+            <ListItem key={blog.id}>
+              <StyledLink to={`/blogs/${blog.id}`}>{blog.title}</StyledLink>
+            </ListItem>
+          )}
+        </MarginDiv>
       </div>
     </div>
   )
@@ -245,7 +201,6 @@ const App = () => {
       const blogs = await blogService.getAll()
       blogs.sort((a, b) => b.likes - a.likes)
       setBlogs( blogs )
-      console.log(blogs)
     }
     fetchData()
   }, [])
@@ -254,7 +209,6 @@ const App = () => {
     async function fetchData() {
       const users = await userService.getAll()
       setUsers( users )
-      console.log(users)
     }
     fetchData()
   }, [])
@@ -374,36 +328,28 @@ const App = () => {
   const blogFormRef = useRef()
 
   const blogForm = () => (
-    <Togglable buttonLabel='add new blog' ref={blogFormRef}>
-      <BlogForm createBlog={addBlog} />
+    <Togglable buttonLabel='add new blog' buttonStyle={Button} ref={blogFormRef}>
+      <BlogForm createBlog={addBlog} inputStyle={Input} buttonStyle={Button} />
     </Togglable>
   )
 
   const commentFormRef = useRef()
 
   const commentForm = (selectedBlog) => (
-    <Togglable buttonLabel='add comment' ref={commentFormRef} >
-      <CommentForm createComment={addComment} selectedBlog={selectedBlog} />
+    <Togglable buttonLabel='add comment' buttonStyle={Button} ref={commentFormRef} >
+      <CommentForm createComment={addComment} selectedBlog={selectedBlog} inputStyle={Input} buttonStyle={Button} />
     </Togglable>
   )
 
   const addComment = async (id, newObj) => {
     console.log('adding a comment....')
     commentFormRef.current.toggleVisibility()
-    console.log(id)
-    console.log(newObj)
     try {
       const returnedBlog = await blogService.createComment(id, newObj)
-      /*const blogToBeUpdated = blogs.find(blog => blog.id.toString() === id)
-      const blogAdder = blogToBeUpdated.user
-      returnedBlog.user = blogAdder */
-      console.log('tällainen blogi tuli takaisin')
-      console.log(returnedBlog)
       const updatedBlogList = blogs.map(blog => blog.id !== id ? blog : returnedBlog)
       updatedBlogList.sort((a, b) => b.likes - a.likes)
       setBlogs(updatedBlogList)
     } catch (exception) {
-      console.log('ei vitsi, pieleen meni')
       console.log(exception)
     }
   }
@@ -415,54 +361,59 @@ const App = () => {
       <div>
         <h2>Log in to application</h2>
         <form onSubmit={handleLogin}>
-          <div>
-            username
-            <input
-              id='username'
-              type="text"
-              value={username}
-              name="Username"
-              onChange={({ target }) => setUsername(target.value)}
-            />
-          </div>
-          <div>
-            password
-            <input
-              id='password'
-              type="password"
-              value={password}
-              name="Password"
-              onChange={({ target }) => setPassword(target.value)}
-            />
-          </div>
-          <button id='login-button' type="submit">login</button>
+          <table>
+            <tbody>
+              <tr>
+                <td>username</td>
+                <td>
+                  <Input
+                    id='username'
+                    type="text"
+                    value={username}
+                    name="Username"
+                    onChange={({ target }) => setUsername(target.value)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>password</td>
+                <td>
+                  <Input
+                    id='password'
+                    type="password"
+                    value={password}
+                    name="Password"
+                    onChange={({ target }) => setPassword(target.value)}
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <Button id='login-button' type="submit">login</Button>
         </form>
       </div>
     )
   }
 
-  const linkStyle = {
-    padding: 5
-  }
-
-
   return (
-    <Router>
-      <div className="navbar">
-        <Link style={linkStyle} to="/">blogs</Link>
-        <Link style={linkStyle} to="/users">users</Link>
-        <LoggedDetails user={user} loginForm={loginForm} handleLogout={handleLogout} />
-      </div>
-      <Routes>
-        <Route path="/users/:id" element={<UserView users={users} user={user} loginForm={loginForm} handleLogout={handleLogout} />} />
-        <Route path="/blogs/:id" element={<BlogView user={user} loginForm={loginForm} handleLogout={handleLogout}
-          likeBlog={updateBlog} blogs={blogs} setBlogs={setBlogs} commentForm={commentForm} />} />
-        <Route path="/users" element={<Users users={users} user={user} loginForm={loginForm} handleLogout={handleLogout} />} />
-        <Route path="/" element={<Blogs users={users} user={user} loginForm={loginForm} handleLogout={handleLogout}
-          updateBlog={updateBlog} deleteBlog={deleteBlog} successMessage={successMessage} errorMessage={errorMessage}
-          blogForm={blogForm} blogs={blogs} />} />
-      </Routes>
-    </Router>
+    <Page>
+      <Router>
+        <Navigation className="navbar">
+          <StyledLinkNav to="/">blogs</StyledLinkNav>
+          <StyledLinkNav to="/users">users</StyledLinkNav>
+          <LoggedDetails user={user} loginForm={loginForm} handleLogout={handleLogout} />
+        </Navigation>
+        <Routes>
+          <Route path="/users/:id" element={<UserView users={users} user={user} loginForm={loginForm} handleLogout={handleLogout} />} />
+          <Route path="/blogs/:id" element={<BlogView user={user} loginForm={loginForm} handleLogout={handleLogout}
+            likeBlog={updateBlog} blogs={blogs} setBlogs={setBlogs} commentForm={commentForm} />} />
+          <Route path="/users" element={<Users users={users} user={user} loginForm={loginForm} handleLogout={handleLogout} />} />
+          <Route path="/" element={<Blogs users={users} user={user} loginForm={loginForm} handleLogout={handleLogout}
+            updateBlog={updateBlog} deleteBlog={deleteBlog} successMessage={successMessage} errorMessage={errorMessage}
+            blogForm={blogForm} blogs={blogs} />} />
+        </Routes>
+      </Router>
+    </Page>
   )
 }
 
